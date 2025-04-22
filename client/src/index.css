@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 20 14.3% 4.1%;
+  --muted: 60 4.8% 95.9%;
+  --muted-foreground: 25 5.3% 44.7%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 20 14.3% 4.1%;
+  --card: 0 0% 100%;
+  --card-foreground: 20 14.3% 4.1%;
+  --border: 20 5.9% 90%;
+  --input: 20 5.9% 90%;
+  --primary: 210 29% 24%;  /* #2C3E50 */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 204 70% 53%;  /* #3498DB */
+  --secondary-foreground: 0 0% 100%;
+  --accent: 6 78% 57%;  /* #E74C3C */
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 60 9.1% 97.8%;
+  --ring: 20 14.3% 4.1%;
+  --radius: 0.5rem;
+
+  --success: 145 63% 49%;  /* #2ECC71 */
+  --success-foreground: 0 0% 100%;
+  --warning: 37 90% 51%;  /* #F39C12 */
+  --warning-foreground: 0 0% 100%;
+  --light: 192 15% 94%;  /* #ECF0F1 */
+  --dark: 209 25% 29%;  /* #34495E */
+
+  --chart-1: 204 70% 53%;  /* #3498DB */
+  --chart-2: 6 78% 57%;  /* #E74C3C */
+  --chart-3: 145 63% 49%;  /* #2ECC71 */
+  --chart-4: 37 90% 51%;  /* #F39C12 */
+  --chart-5: 210 29% 24%;  /* #2C3E50 */
+
+  --sidebar-background: 210 29% 24%;  /* #2C3E50 */
+  --sidebar-foreground: 0 0% 100%;
+  --sidebar-primary: 204 70% 53%;  /* #3498DB */
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 6 78% 57%;  /* #E74C3C */
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 209 18% 40%;
+  --sidebar-ring: 0 0% 100%;
+}
+
+.dark {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --popover: 240 10% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --card: 240 10% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --primary: 210 29% 24%;  /* #2C3E50 */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 204 70% 53%;  /* #3498DB */
+  --secondary-foreground: 0 0% 100%;
+  --accent: 6 78% 57%;  /* #E74C3C */
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --ring: 240 4.9% 83.9%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-[#f8f9fa] text-foreground;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}
+
+/* Custom styling */
+.cars-sidebar {
+  height: 100vh;
+  position: fixed;
+  transition: all 0.3s;
+}
+
+.content-area {
+  transition: all 0.3s;
+}
+
+.calendar-day {
+  aspect-ratio: 1/1;
+}
+
+.calendar-day.active {
+  background-color: rgba(52, 152, 219, 0.1);
+}
+
+.calendar-day.booked {
+  background-color: rgba(231, 76, 60, 0.1);
+}
+
+@media (max-width: 768px) {
+  .cars-sidebar {
+    transform: translateX(-100%);
+    z-index: 1000;
+  }
+  .cars-sidebar.show {
+    transform: translateX(0);
+  }
+  .content-area {
+    margin-left: 0 !important;
+  }
+}
