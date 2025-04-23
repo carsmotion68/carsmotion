@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -13,8 +14,16 @@ const Login = () => {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
+  
+  // If already authenticated, redirect to dashboard
+  useEffect(() => {
+    if (isAuthenticated) {
+      setLocation("/");
+    }
+  }, [isAuthenticated, setLocation]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +42,11 @@ const Login = () => {
     
     if (!success) {
       setError("Identifiants incorrects. Veuillez réessayer.");
+      toast({
+        variant: 'destructive',
+        title: 'Échec de la connexion',
+        description: 'Identifiants incorrects. Nom d\'utilisateur: AdamNoe, Mot de passe: 31/03/2025Location!',
+      });
     }
     
     setIsLoading(false);
