@@ -26,12 +26,12 @@ import {
 } from "@/lib/storage";
 import { downloadInvoicePdf } from "@/lib/pdf";
 import { getStatusColor, formatCurrency } from "@/lib/utils";
+import { useRealtimeData } from "@/hooks/useRealtimeData";
 
 const Invoices = () => {
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  // Utilisons notre hook pour synchroniser les données en temps réel
+  const { data, refreshData, isLoading } = useRealtimeData('all');
+  
   const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
   
   const [searchQuery, setSearchQuery] = useState("");
@@ -50,31 +50,10 @@ const Invoices = () => {
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 10;
   
-  // Load data from storage
+  // Mettre à jour les données filtrées quand les données brutes changent
   useEffect(() => {
-    const loadData = () => {
-      const allInvoices = invoiceStorage.getAll();
-      setInvoices(allInvoices);
-      
-      const allCustomers = customerStorage.getAll();
-      setCustomers(allCustomers);
-      
-      const allReservations = reservationStorage.getAll();
-      setReservations(allReservations);
-      
-      const allVehicles = vehicleStorage.getAll();
-      setVehicles(allVehicles);
-      
-      applyFilters(allInvoices, searchQuery, statusFilter, startDate, endDate);
-    };
-    
-    loadData();
-  }, []);
-  
-  // Apply filters and search when query or filters change
-  useEffect(() => {
-    applyFilters(invoices, searchQuery, statusFilter, startDate, endDate);
-  }, [searchQuery, statusFilter, startDate, endDate]);
+    applyFilters(data.invoices, searchQuery, statusFilter, startDate, endDate);
+  }, [data, searchQuery, statusFilter, startDate, endDate]);
   
   // Apply filters and search to invoices
   const applyFilters = (
@@ -91,10 +70,10 @@ const Invoices = () => {
       const lowerQuery = query.toLowerCase();
       
       // Find customers that match the query
-      const matchingCustomers = customers.filter(customer => 
+      const matchingCustomers = data.customers.filter((customer: Customer) => 
         `${customer.firstName} ${customer.lastName}`.toLowerCase().includes(lowerQuery)
       );
-      const customerIds = matchingCustomers.map(c => c.id);
+      const customerIds = matchingCustomers.map((c: Customer) => c.id);
       
       filtered = filtered.filter(invoice => 
         invoice.invoiceNumber.toLowerCase().includes(lowerQuery) ||
@@ -143,14 +122,14 @@ const Invoices = () => {
   };
   
   const handleViewInvoice = (invoice: Invoice) => {
-    const customer = customers.find(c => c.id === invoice.customerId) || null;
-    let reservation = null;
-    let vehicle = null;
+    const customer = data.customers.find((c: Customer) => c.id === invoice.customerId) || null;
+    let reservation: Reservation | null = null;
+    let vehicle: Vehicle | null = null;
     
     if (invoice.reservationId) {
-      reservation = reservations.find(r => r.id === invoice.reservationId) || null;
+      reservation = data.reservations.find((r: Reservation) => r.id === invoice.reservationId) || null;
       if (reservation) {
-        vehicle = vehicles.find(v => v.id === reservation.vehicleId) || null;
+        vehicle = data.vehicles.find((v: Vehicle) => v.id === reservation.vehicleId) || null;
       }
     }
     
@@ -162,16 +141,16 @@ const Invoices = () => {
   };
   
   const handleDownloadInvoice = (invoice: Invoice) => {
-    const customer = customers.find(c => c.id === invoice.customerId);
+    const customer = data.customers.find((c: Customer) => c.id === invoice.customerId);
     if (!customer) return;
     
-    let reservation = null;
-    let vehicle = null;
+    let reservation: Reservation | null = null;
+    let vehicle: Vehicle | null = null;
     
     if (invoice.reservationId) {
-      reservation = reservations.find(r => r.id === invoice.reservationId) || null;
+      reservation = data.reservations.find((r: Reservation) => r.id === invoice.reservationId) || null;
       if (reservation) {
-        vehicle = vehicles.find(v => v.id === reservation.vehicleId) || null;
+        vehicle = data.vehicles.find((v: Vehicle) => v.id === reservation.vehicleId) || null;
       }
     }
     
@@ -184,9 +163,8 @@ const Invoices = () => {
     setIsAddModalOpen(false);
     setIsViewModalOpen(false);
     
-    // Refresh invoice list
-    const allInvoices = invoiceStorage.getAll();
-    setInvoices(allInvoices);
+    // Refresh data
+    refreshData();
   };
   
   // Pagination handlers
@@ -196,7 +174,7 @@ const Invoices = () => {
   
   // Helper functions
   const getCustomerInfo = (customerId: string) => {
-    const customer = customers.find(c => c.id === customerId);
+    const customer = data.customers.find((c: Customer) => c.id === customerId);
     return customer ? `${customer.firstName} ${customer.lastName}` : "Client inconnu";
   };
   
@@ -319,23 +297,25 @@ const Invoices = () => {
                         </Button>
                         <Button variant="ghost" size="icon" className="text-secondary hover:text-blue-700 h-8 w-8"
                           onClick={() => {
-                            const customer = customers.find(c => c.id === invoice.customerId);
+                            const customer = data.customers.find((c: Customer) => c.id === invoice.customerId);
                             if (!customer) return;
                             
-                            let reservation = null;
-                            let vehicle = null;
+                            let reservation: Reservation | null = null;
+                            let vehicle: Vehicle | null = null;
                             
                             if (invoice.reservationId) {
-                              reservation = reservations.find(r => r.id === invoice.reservationId) || null;
+                              reservation = data.reservations.find((r: Reservation) => r.id === invoice.reservationId) || null;
                               if (reservation) {
-                                vehicle = vehicles.find(v => v.id === reservation.vehicleId) || null;
+                                vehicle = data.vehicles.find((v: Vehicle) => v.id === reservation.vehicleId) || null;
                               }
                             }
                             
                             // Open invoice in new window for printing
                             const doc = downloadInvoicePdf(invoice, customer, reservation || undefined, vehicle || undefined);
-                            doc.autoPrint();
-                            doc.output("dataurlnewwindow");
+                            if (doc) {
+                              doc.autoPrint();
+                              doc.output("dataurlnewwindow");
+                            }
                           }}>
                           <Printer className="h-4 w-4" />
                         </Button>
