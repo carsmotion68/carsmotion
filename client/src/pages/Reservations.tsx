@@ -24,11 +24,12 @@ import {
   customerStorage
 } from "@/lib/storage";
 import { getStatusColor, formatCurrency } from "@/lib/utils";
+import { useRealtimeData } from "@/hooks/useRealtimeData";
 
 const Reservations = () => {
-  const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  // Utilisons notre hook pour synchroniser les données en temps réel
+  const { data, refreshData, isLoading } = useRealtimeData('all');
+  
   const [filteredReservations, setFilteredReservations] = useState<Reservation[]>([]);
   const [activeReservations, setActiveReservations] = useState<Reservation[]>([]);
   
@@ -46,34 +47,22 @@ const Reservations = () => {
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 10;
   
-  // Load data from storage
+  // Mettre à jour les données filtrées et actives quand les données brutes changent
   useEffect(() => {
-    const loadData = () => {
-      const allReservations = reservationStorage.getAll();
-      setReservations(allReservations);
-      
-      const allVehicles = vehicleStorage.getAll();
-      setVehicles(allVehicles);
-      
-      const allCustomers = customerStorage.getAll();
-      setCustomers(allCustomers);
-      
-      // Set active reservations (confirmed and not ended yet)
-      const active = allReservations.filter(res => 
-        res.status === "confirmed" && 
-        new Date(res.endDate) >= new Date()
-      );
-      setActiveReservations(active);
-      
-      applyFilters(allReservations, searchQuery, statusFilter, vehicleFilter);
-    };
+    // Récupérer les réservations actives (confirmées et non terminées)
+    const active = data.reservations.filter(res => 
+      res.status === "confirmed" && 
+      new Date(res.endDate) >= new Date()
+    );
+    setActiveReservations(active);
     
-    loadData();
-  }, []);
+    // Appliquer les filtres aux réservations
+    applyFilters(data.reservations, searchQuery, statusFilter, vehicleFilter);
+  }, [data, searchQuery, statusFilter, vehicleFilter]);
   
-  // Apply filters and search when query or filters change
+  // Appliquer les filtres et la recherche quand les critères changent
   useEffect(() => {
-    applyFilters(reservations, searchQuery, statusFilter, vehicleFilter);
+    applyFilters(data.reservations, searchQuery, statusFilter, vehicleFilter);
   }, [searchQuery, statusFilter, vehicleFilter]);
   
   // Apply filters and search to reservations
@@ -90,13 +79,13 @@ const Reservations = () => {
       const lowerQuery = query.toLowerCase();
       
       // Find customers that match the query
-      const matchingCustomers = customers.filter(customer => 
+      const matchingCustomers = data.customers.filter(customer => 
         `${customer.firstName} ${customer.lastName}`.toLowerCase().includes(lowerQuery)
       );
       const customerIds = matchingCustomers.map(c => c.id);
       
       // Find vehicles that match the query
-      const matchingVehicles = vehicles.filter(vehicle => 
+      const matchingVehicles = data.vehicles.filter(vehicle => 
         `${vehicle.make} ${vehicle.model}`.toLowerCase().includes(lowerQuery) ||
         vehicle.licensePlate.toLowerCase().includes(lowerQuery)
       );
@@ -160,16 +149,8 @@ const Reservations = () => {
     setIsViewModalOpen(false);
     setIsInvoiceModalOpen(false);
     
-    // Refresh reservation list
-    const allReservations = reservationStorage.getAll();
-    setReservations(allReservations);
-    
-    // Update active reservations
-    const active = allReservations.filter(res => 
-      res.status === "confirmed" && 
-      new Date(res.endDate) >= new Date()
-    );
-    setActiveReservations(active);
+    // Rafraîchir les données via notre hook
+    refreshData();
   };
   
   // Pagination handlers
@@ -179,12 +160,12 @@ const Reservations = () => {
   
   // Helper functions
   const getVehicleInfo = (vehicleId: string) => {
-    const vehicle = vehicles.find(v => v.id === vehicleId);
+    const vehicle = data.vehicles.find((v: Vehicle) => v.id === vehicleId);
     return vehicle ? `${vehicle.make} ${vehicle.model}` : "Véhicule inconnu";
   };
   
   const getCustomerInfo = (customerId: string) => {
-    const customer = customers.find(c => c.id === customerId);
+    const customer = data.customers.find((c: Customer) => c.id === customerId);
     return customer ? `${customer.firstName} ${customer.lastName}` : "Client inconnu";
   };
   
@@ -218,8 +199,8 @@ const Reservations = () => {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
         <div className="lg:col-span-3">
           <ReservationCalendar 
-            reservations={reservations} 
-            vehicles={vehicles}
+            reservations={data.reservations} 
+            vehicles={data.vehicles}
           />
         </div>
         
@@ -229,8 +210,8 @@ const Reservations = () => {
           <div className="space-y-4">
             {activeReservations.length > 0 ? (
               activeReservations.slice(0, 5).map(reservation => {
-                const vehicle = vehicles.find(v => v.id === reservation.vehicleId);
-                const customer = customers.find(c => c.id === reservation.customerId);
+                const vehicle = data.vehicles.find((v: Vehicle) => v.id === reservation.vehicleId);
+                const customer = data.customers.find((c: Customer) => c.id === reservation.customerId);
                 
                 return (
                   <div key={reservation.id} className="border border-gray-200 rounded-lg p-3">

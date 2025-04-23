@@ -180,7 +180,7 @@ export function getRelatedData(data: {
       if (invoice.reservationId) {
         reservation = data.reservations.find((r) => r.id === invoice.reservationId);
         if (reservation) {
-          vehicle = data.vehicles.find((v) => v.id === reservation.vehicleId);
+          vehicle = data.vehicles.find((v) => v.id === reservation?.vehicleId);
         }
       }
       
