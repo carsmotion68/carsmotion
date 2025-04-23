@@ -162,10 +162,46 @@ const ReservationForm = ({ reservation, onSuccess }: ReservationFormProps) => {
     }
   };
   
+  // Fonction appelée quand un nouveau client est créé
+  const handleNewCustomerCreated = (customerId?: string) => {
+    // Ferme le formulaire de création de client
+    setShowNewCustomerForm(false);
+    
+    // Si un ID client a été retourné (création réussie), met à jour la liste des clients et sélectionne le nouveau client
+    if (customerId) {
+      // Rafraîchit la liste des clients
+      setCustomers(customerStorage.getAll());
+      
+      // Sélectionne le nouveau client dans le formulaire
+      form.setValue("customerId", customerId);
+      
+      toast({
+        title: "Client ajouté",
+        description: "Le nouveau client a été ajouté et sélectionné.",
+      });
+    }
+  };
+
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <>
+      {/* Dialogue pour le formulaire de création de client */}
+      <Dialog open={showNewCustomerForm} onOpenChange={setShowNewCustomerForm}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Ajouter un nouveau client</DialogTitle>
+          </DialogHeader>
+          <div aria-describedby="customer-form-description">
+            <p id="customer-form-description" className="text-sm text-muted-foreground mb-4">
+              Remplissez ce formulaire pour ajouter un nouveau client. Les champs marqués d'un * sont obligatoires.
+            </p>
+            <CustomerForm onSuccess={handleNewCustomerCreated} />
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="vehicleId"
@@ -389,6 +425,7 @@ const ReservationForm = ({ reservation, onSuccess }: ReservationFormProps) => {
         </div>
       </form>
     </Form>
+    </>
   );
 };
 
