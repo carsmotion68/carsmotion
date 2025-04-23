@@ -18,10 +18,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, PlusCircle } from "lucide-react";
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Vehicle, Customer, Reservation, vehicleStorage, customerStorage, reservationStorage } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
 import { cn, formatCurrency } from "@/lib/utils";
+import CustomerForm from "./CustomerForm";
 
 // Define the form schema
 const reservationFormSchema = z.object({
@@ -51,6 +58,7 @@ const ReservationForm = ({ reservation, onSuccess }: ReservationFormProps) => {
   const [availableVehicles, setAvailableVehicles] = useState<Vehicle[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);
   const { toast } = useToast();
   
   // Fetch vehicles and customers
@@ -188,7 +196,19 @@ const ReservationForm = ({ reservation, onSuccess }: ReservationFormProps) => {
             name="customerId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Client</FormLabel>
+                <div className="flex justify-between items-center">
+                  <FormLabel>Client</FormLabel>
+                  <Button 
+                    type="button"
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setShowNewCustomerForm(true)}
+                    className="h-8 text-xs"
+                  >
+                    <PlusCircle className="h-3.5 w-3.5 mr-1" />
+                    Nouveau client
+                  </Button>
+                </div>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
@@ -196,11 +216,15 @@ const ReservationForm = ({ reservation, onSuccess }: ReservationFormProps) => {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {customers.map((customer) => (
-                      <SelectItem key={customer.id} value={customer.id}>
-                        {customer.firstName} {customer.lastName}
-                      </SelectItem>
-                    ))}
+                    {customers.length > 0 ? (
+                      customers.map((customer) => (
+                        <SelectItem key={customer.id} value={customer.id}>
+                          {customer.firstName} {customer.lastName}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="no-customers">Aucun client disponible</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
                 <FormMessage />

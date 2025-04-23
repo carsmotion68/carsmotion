@@ -101,6 +101,14 @@ export interface Customer {
   address?: string;
   city?: string;
   postalCode?: string;
+  country?: string;
+  licenseNumber?: string; // Numéro de permis de conduire
+  licenseIssueDate?: string; // Date d'émission du permis
+  licenseExpiryDate?: string; // Date d'expiration du permis
+  depositType?: 'vehicle' | 'cash' | 'creditCard' | 'bankTransfer' | 'check'; // Type de caution
+  depositAmount?: number; // Montant de la caution
+  depositReference?: string; // Référence de la caution (n° CB, n° chèque, etc.)
+  notes?: string; // Notes supplémentaires sur le client
   createdAt: string;
 }
 
