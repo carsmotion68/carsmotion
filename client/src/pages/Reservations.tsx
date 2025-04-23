@@ -289,7 +289,7 @@ const Reservations = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tous les véhicules</SelectItem>
-                  {vehicles.map(vehicle => (
+                  {data.vehicles.map((vehicle: Vehicle) => (
                     <SelectItem key={vehicle.id} value={vehicle.id}>
                       {vehicle.make} {vehicle.model}
                     </SelectItem>
