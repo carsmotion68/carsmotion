@@ -259,7 +259,7 @@ const ReservationForm = ({ reservation, onSuccess }: ReservationFormProps) => {
                         </SelectItem>
                       ))
                     ) : (
-                      <SelectItem value="no-customers">Aucun client disponible</SelectItem>
+                      <SelectItem value="no-client">Aucun client disponible</SelectItem>
                     )}
                   </SelectContent>
                 </Select>

@@ -250,10 +250,8 @@ const Dashboard = () => {
                   Aucune réservation à venir
                 </div>
               )}
-              <Link href="/reservations">
-                <a className="block text-center text-sm text-secondary hover:underline mt-2">
-                  Voir toutes les réservations
-                </a>
+              <Link href="/reservations" className="block text-center text-sm text-secondary hover:underline mt-2">
+                Voir toutes les réservations
               </Link>
             </div>
           </CardContent>
@@ -313,10 +311,8 @@ const Dashboard = () => {
                 </tbody>
               </table>
             </div>
-            <Link href="/fleet">
-              <a className="block text-center text-sm text-secondary hover:underline mt-4">
-                Voir tous les véhicules
-              </a>
+            <Link href="/fleet" className="block text-center text-sm text-secondary hover:underline mt-4">
+              Voir tous les véhicules
             </Link>
           </CardContent>
         </Card>
@@ -353,10 +349,8 @@ const Dashboard = () => {
                   Aucune transaction enregistrée
                 </div>
               )}
-              <Link href="/journal">
-                <a className="block text-center text-sm text-secondary hover:underline mt-2">
-                  Voir toutes les transactions
-                </a>
+              <Link href="/journal" className="block text-center text-sm text-secondary hover:underline mt-2">
+                Voir toutes les transactions
               </Link>
             </div>
           </CardContent>
