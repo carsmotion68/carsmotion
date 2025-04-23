@@ -99,8 +99,8 @@ const InvoiceForm = ({ invoice, reservationId, onSuccess }: InvoiceFormProps) =>
   // Set default values
   const defaultValues: Partial<InvoiceFormValues> = {
     invoiceNumber: newInvoiceNumber,
-    reservationId: invoice?.reservationId || reservationId || "",
-    customerId: invoice?.customerId || "",
+    reservationId: invoice?.reservationId || reservationId || "no-reservation",
+    customerId: invoice?.customerId || (customers.length > 0 ? customers[0].id : "no-customers"),
     issueDate: invoice?.issueDate ? new Date(invoice.issueDate) : new Date(),
     dueDate: invoice?.dueDate ? new Date(invoice.dueDate) : addDays(new Date(), 14),
     totalAmount: invoice?.totalAmount || 0,
@@ -119,7 +119,7 @@ const InvoiceForm = ({ invoice, reservationId, onSuccess }: InvoiceFormProps) =>
   const currentReservationId = form.watch("reservationId");
   
   useEffect(() => {
-    if (currentReservationId) {
+    if (currentReservationId && currentReservationId !== "no-reservation") {
       const reservation = reservations.find(r => r.id === currentReservationId);
       if (reservation) {
         setSelectedReservation(reservation);
@@ -148,13 +148,28 @@ const InvoiceForm = ({ invoice, reservationId, onSuccess }: InvoiceFormProps) =>
     setIsSubmitting(true);
     
     try {
+      // Vérifier si les clients et les réservations existent
+      if (values.customerId === "no-customers") {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Veuillez créer un client avant de créer une facture.",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Nettoyer les valeurs spéciales
+      const cleanedValues = {
+        ...values,
+        reservationId: values.reservationId === "no-reservation" ? undefined : values.reservationId,
+        issueDate: values.issueDate.toISOString(),
+        dueDate: values.dueDate.toISOString(),
+      };
+      
       if (invoice) {
         // Update existing invoice
-        invoiceStorage.update(invoice.id, {
-          ...values,
-          issueDate: values.issueDate.toISOString(),
-          dueDate: values.dueDate.toISOString(),
-        });
+        invoiceStorage.update(invoice.id, cleanedValues);
         
         toast({
           title: "Facture mise à jour",
@@ -163,9 +178,7 @@ const InvoiceForm = ({ invoice, reservationId, onSuccess }: InvoiceFormProps) =>
       } else {
         // Create new invoice
         invoiceStorage.create({
-          ...values,
-          issueDate: values.issueDate.toISOString(),
-          dueDate: values.dueDate.toISOString(),
+          ...cleanedValues,
           createdAt: new Date().toISOString(),
         });
         
@@ -218,17 +231,19 @@ const InvoiceForm = ({ invoice, reservationId, onSuccess }: InvoiceFormProps) =>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">Aucune réservation</SelectItem>
-                    {reservations.map((reservation) => {
-                      const vehicle = vehicleStorage.getById(reservation.vehicleId);
-                      const customer = customerStorage.getById(reservation.customerId);
-                      return (
-                        <SelectItem key={reservation.id} value={reservation.id}>
-                          {vehicle ? `${vehicle.make} ${vehicle.model}` : 'Véhicule'} - 
-                          {customer ? `${customer.firstName} ${customer.lastName}` : 'Client'}
-                        </SelectItem>
-                      );
-                    })}
+                    <SelectItem value="no-reservation">Aucune réservation</SelectItem>
+                    {reservations.length > 0 && 
+                      reservations.map((reservation) => {
+                        const vehicle = vehicleStorage.getById(reservation.vehicleId);
+                        const customer = customerStorage.getById(reservation.customerId);
+                        return (
+                          <SelectItem key={reservation.id} value={reservation.id}>
+                            {vehicle ? `${vehicle.make} ${vehicle.model}` : 'Véhicule'} - 
+                            {customer ? `${customer.firstName} ${customer.lastName}` : 'Client'}
+                          </SelectItem>
+                        );
+                      })
+                    }
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -249,11 +264,15 @@ const InvoiceForm = ({ invoice, reservationId, onSuccess }: InvoiceFormProps) =>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {customers.map((customer) => (
-                      <SelectItem key={customer.id} value={customer.id}>
-                        {customer.firstName} {customer.lastName}
-                      </SelectItem>
-                    ))}
+                    {customers.length > 0 ? (
+                      customers.map((customer) => (
+                        <SelectItem key={customer.id} value={customer.id}>
+                          {customer.firstName} {customer.lastName}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="no-customers">Aucun client disponible</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
                 <FormMessage />

@@ -57,21 +57,20 @@ const Sidebar = ({ isOpen, closeSidebar }: SidebarProps) => {
         <ul className="space-y-1">
           {menuItems.map((item) => (
             <li key={item.path}>
-              <Link href={item.path}>
-                <a
-                  className={cn(
-                    "block py-2.5 px-5 text-white hover:bg-secondary transition duration-200 flex items-center",
-                    location === item.path && "bg-secondary"
-                  )}
-                  onClick={() => {
-                    if (window.innerWidth < 768) {
-                      closeSidebar();
-                    }
-                  }}
-                >
-                  {item.icon}
-                  {item.label}
-                </a>
+              <Link 
+                href={item.path}
+                className={cn(
+                  "block py-2.5 px-5 text-white hover:bg-secondary transition duration-200 flex items-center",
+                  location === item.path && "bg-secondary"
+                )}
+                onClick={() => {
+                  if (window.innerWidth < 768) {
+                    closeSidebar();
+                  }
+                }}
+              >
+                {item.icon}
+                {item.label}
               </Link>
             </li>
           ))}
