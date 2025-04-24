@@ -1,18 +1,24 @@
 [build]
   command = "npm run build"
-  publish = "client/dist"
-  functions = "functions"
+  publish = "dist"
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF . ../client"
 
 [dev]
   command = "npm run dev"
-  port = 5000
-
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
+  port = 8888
+  targetPort = 5000
+  framework = "#custom"
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+[functions]
+  directory = "functions"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[build.environment]
+  NODE_VERSION = "20"

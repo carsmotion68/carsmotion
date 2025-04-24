@@ -118,12 +118,41 @@ exports.handler = async (event, context) => {
   }
 };
 
-// Fonction pour comparer les mots de passe (à remplacer par une implémentation sécurisée)
+// Fonction pour comparer les mots de passe de manière sécurisée
 async function comparePassword(plainPassword, hashedPassword) {
-  // Ceci est une implémentation simple, à remplacer par bcrypt ou argon2
-  // Dans une vraie application, il faudrait utiliser une bibliothèque de cryptage
-  const [hashed, salt] = hashedPassword.split('.');
-  // Logique de validation du mot de passe à implémenter
-  // Pour l'exemple, on retourne true si le mot de passe contient une partie du sel
-  return plainPassword.includes(salt.substring(0, 3));
+  try {
+    // Le format du mot de passe hashé est "hashed.salt"
+    const [hashed, salt] = hashedPassword.split('.');
+    
+    if (!hashed || !salt) {
+      console.error('Format de mot de passe hashé invalide');
+      return false;
+    }
+    
+    // Utilisation de crypto pour créer un hash avec le même sel
+    const crypto = require('crypto');
+    const keyLen = 64;
+    
+    return new Promise((resolve, reject) => {
+      crypto.scrypt(plainPassword, salt, keyLen, (err, derivedKey) => {
+        if (err) {
+          console.error('Erreur lors du hachage du mot de passe:', err);
+          return resolve(false);
+        }
+        
+        const suppliedHashedBuffer = Buffer.from(derivedKey).toString('hex');
+        
+        // Comparaison sécurisée des deux hashes
+        const result = crypto.timingSafeEqual(
+          Buffer.from(hashed, 'hex'),
+          Buffer.from(suppliedHashedBuffer, 'hex')
+        );
+        
+        resolve(result);
+      });
+    });
+  } catch (error) {
+    console.error('Erreur lors de la comparaison des mots de passe:', error);
+    return false;
+  }
 }
