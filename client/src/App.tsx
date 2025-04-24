@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useAuth } from "@/hooks/useAuth";
-import Login from "@/pages/Login";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AuthProvider } from "@/hooks/use-auth";
+import { ProtectedRoute } from "@/lib/protected-route";
+import AuthPage from "@/pages/auth-page";
 import Dashboard from "@/pages/Dashboard";
 import Fleet from "@/pages/Fleet";
 import Reservations from "@/pages/Reservations";
@@ -16,10 +18,10 @@ import Settings from "@/pages/Settings";
 import NotFound from "@/pages/not-found";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
+import { queryClient } from "@/lib/queryClient";
 
-function App() {
+function AppContent() {
   const [location] = useLocation();
-  const { isAuthenticated, loading } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -49,45 +51,93 @@ function App() {
     }
   }, []);
 
-  // Loading state
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-secondary"></div>
+  const MainLayout = ({ children }: { children: React.ReactNode }) => (
+    <div className="flex h-screen bg-[#f8f9fa]">
+      <Sidebar isOpen={sidebarOpen} closeSidebar={() => setSidebarOpen(false)} />
+      
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : 'ml-0 md:ml-64'}`}>
+        <Header toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+        
+        <main className="flex-1 p-5 overflow-auto">
+          {children}
+        </main>
       </div>
-    );
-  }
+    </div>
+  );
 
   return (
-    <TooltipProvider>
-      <Toaster />
-      {!isAuthenticated ? (
-        <Login />
-      ) : (
-        <div className="flex h-screen bg-[#f8f9fa]">
-          <Sidebar isOpen={sidebarOpen} closeSidebar={() => setSidebarOpen(false)} />
-          
-          <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : 'ml-0 md:ml-64'}`}>
-            <Header toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-            
-            <main className="flex-1 p-5 overflow-auto">
-              <Switch>
-                <Route path="/" component={Dashboard} />
-                <Route path="/fleet" component={Fleet} />
-                <Route path="/reservations" component={Reservations} />
-                <Route path="/invoices" component={Invoices} />
-                <Route path="/journal" component={Journal} />
-                <Route path="/cashbook" component={CashBook} />
-                <Route path="/accounting" component={Accounting} />
-                <Route path="/maintenance" component={Maintenance} />
-                <Route path="/settings" component={Settings} />
-                <Route component={NotFound} />
-              </Switch>
-            </main>
-          </div>
-        </div>
-      )}
-    </TooltipProvider>
+    <Switch>
+      <Route path="/auth" component={AuthPage} />
+      
+      <ProtectedRoute path="/" component={() => (
+        <MainLayout>
+          <Dashboard />
+        </MainLayout>
+      )} />
+      
+      <ProtectedRoute path="/fleet" component={() => (
+        <MainLayout>
+          <Fleet />
+        </MainLayout>
+      )} />
+      
+      <ProtectedRoute path="/reservations" component={() => (
+        <MainLayout>
+          <Reservations />
+        </MainLayout>
+      )} />
+      
+      <ProtectedRoute path="/invoices" component={() => (
+        <MainLayout>
+          <Invoices />
+        </MainLayout>
+      )} />
+      
+      <ProtectedRoute path="/journal" component={() => (
+        <MainLayout>
+          <Journal />
+        </MainLayout>
+      )} />
+      
+      <ProtectedRoute path="/cashbook" component={() => (
+        <MainLayout>
+          <CashBook />
+        </MainLayout>
+      )} />
+      
+      <ProtectedRoute path="/accounting" component={() => (
+        <MainLayout>
+          <Accounting />
+        </MainLayout>
+      )} />
+      
+      <ProtectedRoute path="/maintenance" component={() => (
+        <MainLayout>
+          <Maintenance />
+        </MainLayout>
+      )} />
+      
+      <ProtectedRoute path="/settings" component={() => (
+        <MainLayout>
+          <Settings />
+        </MainLayout>
+      )} />
+      
+      <Route component={NotFound} />
+    </Switch>
+  );
+}
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <AppContent />
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 
