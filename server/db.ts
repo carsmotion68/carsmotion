@@ -10,7 +10,6 @@ neonConfig.webSocketConstructor = ws;
 // Configuration de Supabase
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
-const connectionString = process.env.DATABASE_URL;
 
 // Vérification des variables d'environnement Supabase
 if (!supabaseUrl || !supabaseKey) {
@@ -28,7 +27,17 @@ console.log('Connexion à Supabase URL:', supabaseUrl);
 // Création du client Supabase
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Configuration de la connexion PostgreSQL directe pour Drizzle ORM
+// Obtenir la chaîne de connexion de la base de données
+// Nous avons deux options de connexion possibles (base de données directe ou pooler)
+let connectionString = process.env.DATABASE_URL;
+
+// Si l'URL n'est pas spécifiée ou est l'ancienne URL, utiliser l'URL du pooler codée en dur
+if (!connectionString || connectionString.includes('db.kuepctbdkdmujaltwzpu.supabase.co:5432')) {
+  // Format pooler: postgres://postgres.PROJECT_REF:PASSWORD@aws-0-eu-west-3.pooler.supabase.com:6543/postgres
+  connectionString = 'postgres://postgres.kuepctbdkdmujaltwzpu:Ahasiaup208!@aws-0-eu-west-3.pooler.supabase.com:6543/postgres';
+  console.log('Utilisation de l\'URL du pooler Supabase (hardcodée)');
+}
+
 if (!connectionString) {
   console.error('Variable DATABASE_URL manquante');
   throw new Error(
@@ -44,7 +53,12 @@ let pool: Pool;
 try {
   pool = new Pool({ 
     connectionString,
-    ssl: { rejectUnauthorized: false } // Pour les connexions sécurisées
+    ssl: { rejectUnauthorized: false }, // Pour les connexions sécurisées
+    // Augmenter les délais pour éviter les déconnexions
+    statement_timeout: 10000, // 10 secondes
+    query_timeout: 10000, // 10 secondes
+    connectionTimeoutMillis: 10000, // 10 secondes
+    idle_in_transaction_session_timeout: 10000 // 10 secondes
   });
   console.log('Connexion à la base de données établie avec succès');
 } catch (error) {
