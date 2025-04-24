@@ -8,7 +8,8 @@ import {
   TrendingDown, 
   Calculator,
   Pencil,
-  Trash2
+  Trash2,
+  Car
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -31,6 +32,7 @@ import {
 import { transactionStorage, Transaction } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
+import { generateMonthlyVehicleExpenses } from "@/lib/generateVehicleExpenses";
 
 const Journal = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -69,7 +71,7 @@ const Journal = () => {
       setTransactions(allTransactions);
       
       // Extract unique categories
-      const uniqueCategories = [...new Set(allTransactions.map(t => t.category))];
+      const uniqueCategories = Array.from(new Set(allTransactions.map(t => t.category)));
       setCategories(uniqueCategories);
       
       // Calculate statistics
@@ -221,7 +223,7 @@ const Journal = () => {
     calculateStats(allTransactions);
     
     // Extract unique categories
-    const uniqueCategories = [...new Set(allTransactions.map(t => t.category))];
+    const uniqueCategories = Array.from(new Set(allTransactions.map(t => t.category)));
     setCategories(uniqueCategories);
   };
   
@@ -230,6 +232,40 @@ const Journal = () => {
     setCurrentPage(page);
   };
   
+  // Générer les dépenses mensuelles des véhicules
+  const handleGenerateVehicleExpenses = () => {
+    // Utiliser la date correspondant au mois sélectionné
+    const selectedDate = new Date();
+    if (monthFilter) {
+      const [year, month] = monthFilter.split('-');
+      selectedDate.setFullYear(parseInt(year));
+      selectedDate.setMonth(parseInt(month) - 1);
+    }
+    
+    const count = generateMonthlyVehicleExpenses(selectedDate);
+    
+    if (count > 0) {
+      toast({
+        title: "Dépenses générées",
+        description: `${count} transactions de dépenses ont été générées avec succès.`,
+      });
+      
+      // Actualiser les données
+      const allTransactions = transactionStorage.getAll();
+      setTransactions(allTransactions);
+      calculateStats(allTransactions);
+      
+      // Extraire les catégories uniques
+      const uniqueCategories = Array.from(new Set(allTransactions.map(t => t.category)));
+      setCategories(uniqueCategories);
+    } else {
+      toast({
+        title: "Aucune nouvelle dépense",
+        description: "Toutes les dépenses pour ce mois ont déjà été générées ou aucun véhicule n'a de paiements mensuels.",
+      });
+    }
+  };
+
   // Calculate running balance for each transaction in the view
   const getTransactionsWithBalance = () => {
     let runningBalance = stats.currentBalance;
@@ -301,6 +337,16 @@ const Journal = () => {
           iconColor="text-secondary"
           valueColor={stats.monthlyResult >= 0 ? "text-success" : "text-accent"}
         />
+      </div>
+      
+      <div className="mb-4 flex justify-end">
+        <Button 
+          onClick={handleGenerateVehicleExpenses} 
+          variant="outline" 
+          className="text-secondary border-secondary hover:bg-secondary/10"
+        >
+          <Car className="mr-2 h-4 w-4" /> Générer les dépenses mensuelles des véhicules
+        </Button>
       </div>
       
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
