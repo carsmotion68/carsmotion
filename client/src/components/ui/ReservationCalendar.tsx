@@ -45,9 +45,9 @@ const CalendarDay = ({ day, currentMonth, today, bookings }: CalendarDayProps) =
               <div 
                 key={booking.reservation.id}
                 className={`text-xs text-white rounded px-1 truncate ${index % 2 === 0 ? 'bg-secondary' : 'bg-accent'}`}
-                title={`${booking.vehicle.make} ${booking.vehicle.model} - ${format(new Date(booking.reservation.startDate), 'dd/MM/yyyy')} au ${format(new Date(booking.reservation.endDate), 'dd/MM/yyyy')}`}
+                title={`${booking.vehicle?.make || 'N/A'} ${booking.vehicle?.model || 'N/A'} - ${format(new Date(booking.reservation.startDate), 'dd/MM/yyyy')} au ${format(new Date(booking.reservation.endDate), 'dd/MM/yyyy')}`}
               >
-                {booking.vehicle.make.substring(0, 3)}
+                {booking.vehicle?.make ? booking.vehicle.make.substring(0, 3) : 'N/A'}
               </div>
             ))}
             {bookings.length > 3 && (
@@ -94,7 +94,7 @@ const ReservationCalendar = ({ reservations, vehicles, onDayClick }: Reservation
       const vehicle = vehicles.find(v => v.id === reservation.vehicleId);
       return {
         reservation,
-        vehicle: vehicle as Vehicle
+        vehicle: vehicle || undefined
       };
     });
   };
