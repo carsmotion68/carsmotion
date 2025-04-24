@@ -1,9 +1,8 @@
 import { users, type User, type InsertUser } from "@shared/schema";
-import { db } from "./db";
+import { db, supabase } from "./db";
 import { eq } from "drizzle-orm";
-import connectPg from "connect-pg-simple";
 import session from "express-session";
-import { pool } from "./db";
+import createMemoryStore from "memorystore";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -15,16 +14,18 @@ export interface IStorage {
   sessionStore: any; // Type explicite de session.Store crée des problèmes
 }
 
-const PostgresSessionStore = connectPg(session);
+// Créer un store en mémoire pour les sessions
+const MemoryStore = createMemoryStore(session);
 
 export class DatabaseStorage implements IStorage {
   sessionStore: any;
 
   constructor() {
-    this.sessionStore = new PostgresSessionStore({ 
-      pool, 
-      createTableIfMissing: true 
+    // Utiliser un stockage mémoire pour les sessions
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000 // 24 heures
     });
+    // À remplacer par une implémentation Supabase une fois le backend déployé
   }
 
   async getUser(id: number): Promise<User | undefined> {
