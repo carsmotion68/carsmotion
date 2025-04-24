@@ -173,16 +173,53 @@ const InvoiceForm = ({ invoice, reservationId, onSuccess }: InvoiceFormProps) =>
         // Update existing invoice
         invoiceStorage.update(invoice.id, cleanedValues);
         
+        // Si le statut change de "unpaid" à "paid", et qu'il n'y a pas de réservation associée,
+        // créer une transaction financière (pour les factures sans réservation)
+        if (values.status === "paid" && invoice.status !== "paid" && !values.reservationId) {
+          const customer = customerStorage.getById(values.customerId);
+          const customerName = customer ? `${customer.firstName} ${customer.lastName}` : "Client";
+          
+          transactionStorage.create({
+            date: new Date().toISOString(),
+            type: "income",
+            category: "Factures",
+            amount: values.totalAmount,
+            description: `Paiement de la facture ${values.invoiceNumber} par ${customerName}`,
+            relatedTo: invoice.id,
+            createdAt: new Date().toISOString(),
+          });
+        }
+        
         toast({
           title: "Facture mise à jour",
           description: `La facture ${values.invoiceNumber} a été mise à jour avec succès.`,
         });
       } else {
         // Create new invoice
-        invoiceStorage.create({
+        const newInvoice = invoiceStorage.create({
           ...cleanedValues,
           createdAt: new Date().toISOString(),
         });
+        
+        // Vérifier si cette facture est liée à une réservation
+        const reservationId = values.reservationId === "no-reservation" ? null : values.reservationId;
+        
+        // Si c'est une facture sans réservation et qu'elle est marquée comme payée,
+        // créer une transaction financière
+        if (!reservationId && values.status === "paid") {
+          const customer = customerStorage.getById(values.customerId);
+          const customerName = customer ? `${customer.firstName} ${customer.lastName}` : "Client";
+          
+          transactionStorage.create({
+            date: new Date().toISOString(),
+            type: "income",
+            category: "Factures",
+            amount: values.totalAmount,
+            description: `Paiement de la facture ${values.invoiceNumber} par ${customerName}`,
+            relatedTo: newInvoice.id,
+            createdAt: new Date().toISOString(),
+          });
+        }
         
         toast({
           title: "Facture créée",
