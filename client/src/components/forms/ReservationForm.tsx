@@ -71,10 +71,11 @@ const ReservationForm = ({ reservation, onSuccess }: ReservationFormProps) => {
   
   // Fetch vehicles and customers
   useEffect(() => {
+    // Récupérer tous les véhicules, même ceux qui sont actuellement loués
     const allVehicles = vehicleStorage.getAll();
-    // Filter out rented vehicles or include the current one if editing
-    const available = allVehicles.filter(v => v.status === "available" || (reservation && v.id === reservation.vehicleId));
-    setAvailableVehicles(available);
+    
+    // Pour la création d'une nouvelle réservation future, nous permettons de réserver même les véhicules loués
+    setAvailableVehicles(allVehicles);
     
     if (reservation?.vehicleId) {
       const vehicle = allVehicles.find(v => v.id === reservation.vehicleId);
@@ -124,6 +125,42 @@ const ReservationForm = ({ reservation, onSuccess }: ReservationFormProps) => {
     setIsSubmitting(true);
     
     try {
+      // Vérifier que la voiture n'est pas déjà réservée pour ces dates
+      if (!reservation || values.vehicleId !== reservation.vehicleId) {
+        // Récupérer toutes les réservations pour ce véhicule
+        const existingReservations = reservationStorage.getAll().filter(r => 
+          r.vehicleId === values.vehicleId && 
+          r.status !== "cancelled" && 
+          (!reservation || r.id !== reservation.id) // Exclure la réservation actuelle si on édite
+        );
+        
+        // Vérifier s'il y a des chevauchements de dates
+        const startDate = new Date(values.startDate);
+        const endDate = new Date(values.endDate);
+        
+        const hasOverlap = existingReservations.some(r => {
+          const rStart = new Date(r.startDate);
+          const rEnd = new Date(r.endDate);
+          
+          // Vérifier si les périodes se chevauchent
+          return (
+            (startDate >= rStart && startDate <= rEnd) || // Début dans une réservation existante
+            (endDate >= rStart && endDate <= rEnd) || // Fin dans une réservation existante
+            (startDate <= rStart && endDate >= rEnd) // Réservation existante incluse dans la nouvelle
+          );
+        });
+        
+        if (hasOverlap) {
+          toast({
+            variant: "destructive",
+            title: "Conflit de réservation",
+            description: "Ce véhicule est déjà réservé pour les dates sélectionnées.",
+          });
+          setIsSubmitting(false);
+          return;
+        }
+      }
+      
       let reservationId: string;
       
       if (reservation) {
@@ -138,30 +175,50 @@ const ReservationForm = ({ reservation, onSuccess }: ReservationFormProps) => {
         
         reservationId = reservation.id;
         
-        // Si le statut passe à "confirmed" et n'était pas déjà confirmé, créer une transaction financière
-        if (values.status === "confirmed" && previousStatus !== "confirmed") {
-          // Récupérer les informations du client et du véhicule
-          const customer = customerStorage.getById(values.customerId);
-          const vehicle = vehicleStorage.getById(values.vehicleId);
-          
-          // Mettre à jour le statut du véhicule
-          vehicleStorage.update(values.vehicleId, {
-            status: "rented"
-          });
-          
-          // Créer une transaction financière pour cette location
-          const customerName = customer ? `${customer.firstName} ${customer.lastName}` : "Client";
-          const vehicleInfo = vehicle ? `${vehicle.make} ${vehicle.model}` : "Véhicule";
-          
-          transactionStorage.create({
-            date: new Date().toISOString(),
-            type: "income",
-            category: "Locations",
-            amount: values.totalAmount,
-            description: `Location de ${vehicleInfo} à ${customerName}`,
-            relatedTo: reservationId,
-            createdAt: new Date().toISOString(),
-          });
+        // Récupérer les informations du client et du véhicule
+        const customer = customerStorage.getById(values.customerId);
+        const vehicle = vehicleStorage.getById(values.vehicleId);
+        
+        // Si le statut change, mettre à jour le véhicule en conséquence
+        if (previousStatus !== values.status) {
+          // Si la réservation est confirmée, marquer le véhicule comme loué
+          if (values.status === "confirmed") {
+            vehicleStorage.update(values.vehicleId, {
+              status: "rented"
+            });
+            
+            // Si la réservation n'était pas déjà confirmée, créer une transaction
+            if (previousStatus !== "confirmed") {
+              const customerName = customer ? `${customer.firstName} ${customer.lastName}` : "Client";
+              const vehicleInfo = vehicle ? `${vehicle.make} ${vehicle.model}` : "Véhicule";
+              
+              transactionStorage.create({
+                date: new Date().toISOString(),
+                type: "income",
+                category: "Locations",
+                amount: values.totalAmount,
+                description: `Location de ${vehicleInfo} à ${customerName}`,
+                relatedTo: reservationId,
+                createdAt: new Date().toISOString(),
+              });
+            }
+          } 
+          // Si la réservation est terminée ou annulée, remettre le véhicule comme disponible
+          else if (values.status === "completed" || values.status === "cancelled") {
+            // Vérifier s'il existe d'autres réservations actives pour ce véhicule
+            const activeReservations = reservationStorage.getAll().filter(r => 
+              r.vehicleId === values.vehicleId && 
+              r.id !== reservation.id && 
+              r.status === "confirmed"
+            );
+            
+            // Si aucune autre réservation active, remettre le véhicule disponible
+            if (activeReservations.length === 0) {
+              vehicleStorage.update(values.vehicleId, {
+                status: "available"
+              });
+            }
+          }
         }
         
         toast({
@@ -179,16 +236,30 @@ const ReservationForm = ({ reservation, onSuccess }: ReservationFormProps) => {
         
         reservationId = newReservation.id;
         
-        // Si la réservation est confirmée à la création, créer une transaction financière
+        // Récupérer les informations du client et du véhicule
+        const customer = customerStorage.getById(values.customerId);
+        const vehicle = vehicleStorage.getById(values.vehicleId);
+        
+        // Si la réservation est confirmée à la création
         if (values.status === "confirmed") {
-          // Récupérer les informations du client et du véhicule
-          const customer = customerStorage.getById(values.customerId);
-          const vehicle = vehicleStorage.getById(values.vehicleId);
+          // Vérifier s'il y a d'autres réservations confirmées pour ce véhicule
+          const overlappingReservations = reservationStorage.getAll().filter(r => 
+            r.vehicleId === values.vehicleId && 
+            r.id !== reservationId && 
+            r.status === "confirmed" &&
+            new Date(r.startDate) <= new Date() && // Uniquement vérifier les réservations actuelles
+            new Date(r.endDate) >= new Date()
+          );
           
-          // Mettre à jour le statut du véhicule
-          vehicleStorage.update(values.vehicleId, {
-            status: "rented"
-          });
+          // Si aucune réservation actuelle, changer le statut du véhicule
+          if (overlappingReservations.length === 0 && 
+              new Date(values.startDate) <= new Date() && 
+              new Date(values.endDate) >= new Date()) {
+            // La réservation est pour maintenant, changer le statut du véhicule
+            vehicleStorage.update(values.vehicleId, {
+              status: "rented"
+            });
+          }
           
           // Créer une transaction financière pour cette location
           const customerName = customer ? `${customer.firstName} ${customer.lastName}` : "Client";
