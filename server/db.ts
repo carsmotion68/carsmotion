@@ -1,7 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import ws from 'ws';
 import * as schema from "@shared/schema";
+
+// Configurer Neon pour utiliser WebSocket
+neonConfig.webSocketConstructor = ws;
 
 // Configuration de Supabase
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -18,7 +22,6 @@ if (!supabaseUrl || !supabaseKey) {
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Configuration de la connexion PostgreSQL directe pour Drizzle ORM
-// On utilise l'URL de connexion fournie par Supabase dans DATABASE_URL
 const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
@@ -27,12 +30,8 @@ if (!connectionString) {
   );
 }
 
-// Configuration du client PostgreSQL pour Drizzle ORM
-const client = postgres(connectionString, {
-  max: 10, // Nombre maximum de connexions
-  idle_timeout: 20, // Temps d'inactivité avant de fermer une connexion
-  connect_timeout: 10, // Temps d'attente pour établir une connexion
-});
+// Créer un pool de connexions avec @neondatabase/serverless
+const pool = new Pool({ connectionString });
 
 // Initialisation de Drizzle avec notre client PostgreSQL et notre schéma
-export const db = drizzle(client, { schema });
+export const db = drizzle(pool, { schema });
