@@ -60,10 +60,10 @@ const Reservations = () => {
     applyFilters(data.reservations, searchQuery, statusFilter, vehicleFilter);
   }, [data, searchQuery, statusFilter, vehicleFilter]);
   
-  // Appliquer les filtres et la recherche quand les critères changent
+  // Appliquer les filtres et la recherche quand les critères changent ou quand data change
   useEffect(() => {
     applyFilters(data.reservations, searchQuery, statusFilter, vehicleFilter);
-  }, [searchQuery, statusFilter, vehicleFilter]);
+  }, [data.reservations, searchQuery, statusFilter, vehicleFilter]);
   
   // Apply filters and search to reservations
   const applyFilters = (

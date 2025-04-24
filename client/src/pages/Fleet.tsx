@@ -47,10 +47,10 @@ const Fleet = () => {
   const { toast } = useToast();
   
   // Get all vehicle makes for filter
-  const uniqueMakes = [...new Set(vehicles.map(vehicle => vehicle.make))];
+  const uniqueMakes = Array.from(new Set(vehicles.map(vehicle => vehicle.make)));
   
   // Get all fuel types for filter
-  const uniqueFuelTypes = [...new Set(vehicles.map(vehicle => vehicle.fuelType))];
+  const uniqueFuelTypes = Array.from(new Set(vehicles.map(vehicle => vehicle.fuelType)));
   
   // Load vehicles from storage
   useEffect(() => {
@@ -63,10 +63,10 @@ const Fleet = () => {
     loadVehicles();
   }, []);
   
-  // Apply filters and search when query or filters change
+  // Apply filters and search when query or filters change or when vehicles change
   useEffect(() => {
     applyFilters(vehicles, searchQuery, statusFilter, makeFilter, fuelTypeFilter);
-  }, [searchQuery, statusFilter, makeFilter, fuelTypeFilter]);
+  }, [vehicles, searchQuery, statusFilter, makeFilter, fuelTypeFilter]);
   
   // Apply filters and search to vehicles
   const applyFilters = (

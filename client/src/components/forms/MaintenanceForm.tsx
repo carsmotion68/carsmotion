@@ -138,7 +138,7 @@ const MaintenanceForm = ({ record, onSuccess }: MaintenanceFormProps) => {
           values.vehicleId,
           values.description,
           values.cost,
-          values.date
+          values.date.toISOString()
         );
         
         // Update vehicle mileage if the new maintenance record has a higher mileage
