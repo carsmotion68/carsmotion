@@ -1,24 +1,17 @@
 [build]
-  command = "npm run build"
-  publish = "dist"
-  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF . ../client"
+  base = "."
+  publish = "client/dist"
+  command = "npm ci && npm run build"
+  functions = "functions"
 
-[dev]
-  command = "npm run dev"
-  port = 8888
-  targetPort = 5000
-  framework = "#custom"
+# Redirection des routes API vers les fonctions Netlify
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
 
+# Toutes les autres routes sont gérées par l'application React
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-[functions]
-  directory = "functions"
-
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
-
-[build.environment]
-  NODE_VERSION = "20"

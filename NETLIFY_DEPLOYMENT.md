@@ -1,78 +1,110 @@
-# Guide de déploiement sur Netlify
+# Guide de déploiement sur Netlify avec Supabase
 
-Ce document explique les étapes pour déployer CARS MOTION sur Netlify avec Supabase comme base de données.
+Ce guide explique comment déployer l'application CARS MOTION sur Netlify en utilisant Supabase comme base de données.
 
 ## Prérequis
 
-- Un compte Netlify (créez-en un sur [netlify.com](https://netlify.com) si nécessaire)
-- Un projet Supabase (créez-en un sur [supabase.com](https://supabase.com) si nécessaire)
-- Git installé sur votre ordinateur
+1. Un compte Netlify
+2. Un projet Supabase (déjà configuré)
+3. Les informations d'identification Supabase :
+   - URL du projet : `https://kuepctbdkdmujaltwzpu.supabase.co`
+   - Clé anon : `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt1ZXBjdGJka2RtdWphbHR3enB1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTQzMjUwNzMsImV4cCI6MjAyOTkwMTA3M30.EfTpDVH2AcJfAUGZWHNsDYiR-V1jq_-3Z1O11MqGR5A`
+   - Clé service : `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt1ZXBjdGJka2RtdWphbHR3enB1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcxNDMyNTA3MywiZXhwIjoyMDI5OTAxMDczfQ.yJa0TCi9DAIISm6RV9rIHdqkYgxAIq-VW9hvPQ8p_IU`
+   - URL de la base de données (standard) : `postgresql://postgres:Ahasiaup208!@db.kuepctbdkdmujaltwzpu.supabase.co:5432/postgres`
+   - URL de la base de données (pooler) : `postgres://postgres.kuepctbdkdmujaltwzpu:Ahasiaup208!@aws-0-eu-west-3.pooler.supabase.com:6543/postgres`
 
-## Étape 1 : Configurer les variables d'environnement dans Netlify
+## Configuration de la base de données Supabase
+
+### Option 1 : Création des tables via l'interface SQL de Supabase
+
+1. Connectez-vous à votre compte Supabase et accédez à votre projet
+2. Naviguez vers l'onglet "SQL Editor"
+3. Copiez le contenu du fichier `scripts/schema.sql` dans l'éditeur
+4. Exécutez le script SQL qui créera toutes les tables nécessaires
+
+### Option 2 : Création automatique via la fonction Netlify
+
+L'application inclut une fonction Netlify (`functions/create-tables.js`) qui tentera de créer les tables automatiquement lors du déploiement. 
+
+**Note importante** : Pour que cette fonction fonctionne, vous devez créer une fonction RPC dans Supabase qui permet d'exécuter du SQL arbitraire. Voici comment procéder :
+
+1. Dans l'interface Supabase, allez dans "Database" > "Functions" > "New function"
+2. Créez une fonction nommée `execute_sql` avec le code suivant :
+
+```sql
+CREATE OR REPLACE FUNCTION execute_sql(sql text)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  EXECUTE sql;
+END;
+$$;
+```
+
+3. Assurez-vous que cette fonction est disponible pour le rôle de service (`service_role`)
+
+## Déploiement sur Netlify
+
+### Étape 1 : Préparation du projet
+
+Le projet est déjà configuré pour Netlify avec les fichiers suivants :
+- `netlify.toml` : Configuration du déploiement
+- `functions/` : Dossier contenant les fonctions serverless
+
+### Étape 2 : Déploiement initial
 
 1. Connectez-vous à votre compte Netlify
-2. Créez un nouveau site depuis Git
-3. Sélectionnez votre dépôt GitHub, GitLab ou Bitbucket
-4. Dans les paramètres de construction, ajoutez les variables d'environnement suivantes :
+2. Cliquez sur "New site from Git"
+3. Sélectionnez votre dépôt Git
+4. Configurez les paramètres de build :
+   - Build command : `npm run build`
+   - Publish directory : `client/dist`
+
+### Étape 3 : Configuration des variables d'environnement
+
+Dans les paramètres du site Netlify, ajoutez les variables d'environnement suivantes :
 
 ```
-SUPABASE_URL=https://your-project-id.supabase.co
-SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_KEY=your-service-key
-DATABASE_URL=postgres://postgres:your-password@your-project-id.supabase.co:5432/postgres
+SUPABASE_URL=https://kuepctbdkdmujaltwzpu.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt1ZXBjdGJka2RtdWphbHR3enB1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTQzMjUwNzMsImV4cCI6MjAyOTkwMTA3M30.EfTpDVH2AcJfAUGZWHNsDYiR-V1jq_-3Z1O11MqGR5A
+SUPABASE_SERVICE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt1ZXBjdGJka2RtdWphbHR3enB1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcxNDMyNTA3MywiZXhwIjoyMDI5OTAxMDczfQ.yJa0TCi9DAIISm6RV9rIHdqkYgxAIq-VW9hvPQ8p_IU
+DATABASE_URL=postgres://postgres.kuepctbdkdmujaltwzpu:Ahasiaup208!@aws-0-eu-west-3.pooler.supabase.com:6543/postgres
 ```
 
-*Note: Ces valeurs se trouvent dans les paramètres de votre projet Supabase.*
+### Étape 4 : Déploiement et vérification
 
-## Étape 2 : Configurer la base de données Supabase
+1. Déclenchez un nouveau déploiement sur Netlify
+2. Vérifiez les logs de la fonction `create-tables` pour vous assurer que les tables ont été créées correctement
+3. Si la fonction échoue, vous devrez créer les tables manuellement via l'option 1
 
-Vous avez deux options pour créer les tables dans votre base de données Supabase :
+## Migration des données depuis la version locale
 
-### Option 1 : Utiliser la fonction Netlify (recommandé)
+Si vous disposez déjà d'une version locale de l'application avec des données, vous pouvez les migrer vers Supabase :
 
-Nous avons créé une fonction Netlify (`/.netlify/functions/create-tables`) qui se chargera automatiquement de créer toutes les tables nécessaires dans votre base de données Supabase.
-
-1. Déployez d'abord votre application sur Netlify (voir Étape 3 ci-dessous)
-2. Une fois le déploiement terminé, accédez à votre application déployée
-3. Connectez-vous avec les identifiants administrateur (username: AdamNoe, password: 31/03/2025Location!)
-4. Appelez la fonction de création des tables en exécutant cette commande dans la console de votre navigateur :
-
-```javascript
-fetch('/.netlify/functions/create-tables', { method: 'POST' })
-  .then(response => response.json())
-  .then(data => console.log('Résultat:', data))
-  .catch(error => console.error('Erreur:', error));
-```
-
-### Option 2 : Exécuter le script SQL manuellement
-
-Si vous préférez créer les tables manuellement :
-
-1. Dans le tableau de bord Supabase, allez dans "SQL Editor"
-2. Créez une nouvelle requête
-3. Collez le script SQL qui se trouve dans le fichier `/scripts/schema.sql`
-4. Exécutez le script
-5. Vérifiez que toutes les tables ont été créées dans la section "Table Editor"
-
-## Étape 3 : Déployer l'application
-
-1. Cliquez sur "Deploy site" dans l'interface Netlify
-2. Attendez que le déploiement soit terminé
-3. Accédez à l'URL fournie par Netlify
-
-## Étape 4 : Configurer un domaine personnalisé (optionnel)
-
-1. Dans les paramètres du site Netlify, cliquez sur "Domain settings"
-2. Suivez les instructions pour configurer votre domaine personnalisé
+1. Utilisez la fonction d'exportation dans l'application (dans les paramètres) pour exporter toutes les données
+2. Connectez-vous à l'application déployée avec votre compte administrateur
+3. Utilisez la fonction d'importation pour restaurer toutes les données
 
 ## Dépannage
 
-Si vous rencontrez des problèmes :
+### Les tables ne sont pas créées automatiquement
 
-1. Vérifiez les journaux de construction dans Netlify
-2. Assurez-vous que toutes les variables d'environnement sont correctement configurées
-3. Vérifiez que les tables ont été créées dans Supabase
+Si les tables ne sont pas créées automatiquement lors du déploiement :
+
+1. Vérifiez les logs de la fonction `create-tables` sur Netlify
+2. Assurez-vous que les variables d'environnement sont correctement configurées
+3. Créez manuellement les tables en utilisant le script SQL fourni
+
+### Problèmes de connexion à la base de données
+
+Si l'application ne parvient pas à se connecter à la base de données :
+
+1. Vérifiez que les variables d'environnement sont correctes
+2. Assurez-vous que les politiques de sécurité RLS (Row Level Security) sont correctement configurées
+3. Vérifiez les paramètres réseau de Supabase pour vous assurer que les connexions depuis Netlify sont autorisées
 
 ## Support
 
-Pour toute question ou assistance, contactez le support technique.
+Pour toute assistance supplémentaire, contactez l'équipe de support ou consultez la documentation en ligne de Netlify et Supabase.

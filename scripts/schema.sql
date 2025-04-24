@@ -1,8 +1,10 @@
--- Fichier schema.sql
--- Script pour créer les tables de l'application CARS MOTION dans Supabase
--- Exécutez ce script dans l'éditeur SQL de Supabase pour configurer votre base de données
+-- Script SQL pour créer toutes les tables de l'application CARS MOTION
+-- Exécuter ce script dans l'interface SQL de Supabase pour configurer la base de données
 
--- Table des utilisateurs
+-- Extension pgcrypto pour la génération de UUID
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Table users
 CREATE TABLE IF NOT EXISTS public.users (
   id SERIAL PRIMARY KEY,
   username TEXT NOT NULL UNIQUE,
@@ -12,7 +14,7 @@ CREATE TABLE IF NOT EXISTS public.users (
   "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Table des véhicules
+-- Table vehicles
 CREATE TABLE IF NOT EXISTS public.vehicles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   make TEXT NOT NULL,
@@ -32,7 +34,7 @@ CREATE TABLE IF NOT EXISTS public.vehicles (
   "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Table des clients
+-- Table customers
 CREATE TABLE IF NOT EXISTS public.customers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   "firstName" TEXT NOT NULL,
@@ -53,7 +55,7 @@ CREATE TABLE IF NOT EXISTS public.customers (
   "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Table des réservations
+-- Table reservations
 CREATE TABLE IF NOT EXISTS public.reservations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   "vehicleId" UUID NOT NULL,
@@ -68,7 +70,7 @@ CREATE TABLE IF NOT EXISTS public.reservations (
   FOREIGN KEY ("customerId") REFERENCES public.customers(id)
 );
 
--- Table des factures
+-- Table invoices
 CREATE TABLE IF NOT EXISTS public.invoices (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   "invoiceNumber" TEXT NOT NULL,
@@ -85,7 +87,7 @@ CREATE TABLE IF NOT EXISTS public.invoices (
   FOREIGN KEY ("customerId") REFERENCES public.customers(id)
 );
 
--- Table des transactions
+-- Table transactions
 CREATE TABLE IF NOT EXISTS public.transactions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   date TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -97,7 +99,7 @@ CREATE TABLE IF NOT EXISTS public.transactions (
   "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Table des enregistrements de maintenance
+-- Table maintenance_records
 CREATE TABLE IF NOT EXISTS public.maintenance_records (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   "vehicleId" UUID NOT NULL,
@@ -113,7 +115,7 @@ CREATE TABLE IF NOT EXISTS public.maintenance_records (
   FOREIGN KEY ("vehicleId") REFERENCES public.vehicles(id)
 );
 
--- Table des paramètres
+-- Table settings
 CREATE TABLE IF NOT EXISTS public.settings (
   id SERIAL PRIMARY KEY,
   "companyName" TEXT NOT NULL,
@@ -126,7 +128,35 @@ CREATE TABLE IF NOT EXISTS public.settings (
   "lastBackupDate" TIMESTAMP WITH TIME ZONE
 );
 
--- Création d'un utilisateur administrateur initial (mot de passe: 31/03/2025Location!)
+-- Création de l'utilisateur admin
 INSERT INTO public.users (username, password, "fullName", role)
 VALUES ('AdamNoe', '68824c15044b11c5a901b4ba69e4411eec889102a72c9f339b8abf9fc98b0e52.0f5d3c1e5cd0d1a39d4a38e38c6ec94b', 'Adam Noe', 'admin')
 ON CONFLICT (username) DO NOTHING;
+
+-- Création des champs de recherche pour accélérer les requêtes
+CREATE INDEX IF NOT EXISTS vehicles_status_idx ON public.vehicles (status);
+CREATE INDEX IF NOT EXISTS reservations_status_idx ON public.reservations (status);
+CREATE INDEX IF NOT EXISTS reservations_dates_idx ON public.reservations ("startDate", "endDate");
+CREATE INDEX IF NOT EXISTS invoices_status_idx ON public.invoices (status);
+CREATE INDEX IF NOT EXISTS transactions_type_idx ON public.transactions (type);
+CREATE INDEX IF NOT EXISTS transactions_date_idx ON public.transactions (date);
+
+-- Ajouter des politiques de sécurité Row Level Security (RLS)
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.vehicles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.reservations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.maintenance_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;
+
+-- Politique pour permettre toutes les opérations (pour les fonctions d'API)
+CREATE POLICY "Enable all operations for authenticated users" ON public.users FOR ALL TO authenticated USING (true);
+CREATE POLICY "Enable all operations for authenticated users" ON public.vehicles FOR ALL TO authenticated USING (true);
+CREATE POLICY "Enable all operations for authenticated users" ON public.customers FOR ALL TO authenticated USING (true);
+CREATE POLICY "Enable all operations for authenticated users" ON public.reservations FOR ALL TO authenticated USING (true);
+CREATE POLICY "Enable all operations for authenticated users" ON public.invoices FOR ALL TO authenticated USING (true);
+CREATE POLICY "Enable all operations for authenticated users" ON public.transactions FOR ALL TO authenticated USING (true);
+CREATE POLICY "Enable all operations for authenticated users" ON public.maintenance_records FOR ALL TO authenticated USING (true);
+CREATE POLICY "Enable all operations for authenticated users" ON public.settings FOR ALL TO authenticated USING (true);
