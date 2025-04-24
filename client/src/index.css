@@ -4,69 +4,76 @@
 
 :root {
   --background: 0 0% 100%;
-  --foreground: 20 14.3% 4.1%;
-  --muted: 60 4.8% 95.9%;
-  --muted-foreground: 25 5.3% 44.7%;
+  --foreground: 0 0% 7%;
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 45%;
   --popover: 0 0% 100%;
-  --popover-foreground: 20 14.3% 4.1%;
+  --popover-foreground: 0 0% 7%;
   --card: 0 0% 100%;
-  --card-foreground: 20 14.3% 4.1%;
-  --border: 20 5.9% 90%;
-  --input: 20 5.9% 90%;
-  --primary: 210 29% 24%;  /* #2C3E50 */
+  --card-foreground: 0 0% 7%;
+  --border: 0 0% 90%;
+  --input: 0 0% 90%;
+  --primary: 0 0% 0%;  /* #000000 - fond noir du logo */
   --primary-foreground: 0 0% 100%;
-  --secondary: 204 70% 53%;  /* #3498DB */
+  --secondary: 0 72% 51%;  /* #E62A2A - rouge du logo (MOTION) */
   --secondary-foreground: 0 0% 100%;
-  --accent: 6 78% 57%;  /* #E74C3C */
-  --accent-foreground: 0 0% 100%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 60 9.1% 97.8%;
-  --ring: 20 14.3% 4.1%;
+  --accent: 0 0% 80%;  /* #CCCCCC - gris de la silhouette de voiture */
+  --accent-foreground: 0 0% 7%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+  --ring: 0 0% 7%;
   --radius: 0.5rem;
 
-  --success: 145 63% 49%;  /* #2ECC71 */
+  --success: 142 76% 36%;  /* #1DB954 */
   --success-foreground: 0 0% 100%;
-  --warning: 37 90% 51%;  /* #F39C12 */
+  --warning: 38 92% 50%;  /* #F5A623 */
   --warning-foreground: 0 0% 100%;
-  --light: 192 15% 94%;  /* #ECF0F1 */
-  --dark: 209 25% 29%;  /* #34495E */
+  --light: 0 0% 98%;  /* #FAFAFA */
+  --dark: 0 0% 13%;  /* #222222 */
 
-  --chart-1: 204 70% 53%;  /* #3498DB */
-  --chart-2: 6 78% 57%;  /* #E74C3C */
-  --chart-3: 145 63% 49%;  /* #2ECC71 */
-  --chart-4: 37 90% 51%;  /* #F39C12 */
-  --chart-5: 210 29% 24%;  /* #2C3E50 */
+  --chart-1: 0 72% 51%;  /* #E62A2A - rouge */
+  --chart-2: 0 0% 80%;  /* #CCCCCC - gris */
+  --chart-3: 0 0% 20%;  /* #333333 - gris foncé */
+  --chart-4: 0 0% 60%;  /* #999999 - gris moyen */
+  --chart-5: 0 0% 40%;  /* #666666 - gris intermédiaire */
 
-  --sidebar-background: 210 29% 24%;  /* #2C3E50 */
+  --sidebar-background: 0 0% 7%;  /* #121212 - noir légèrement plus clair */
   --sidebar-foreground: 0 0% 100%;
-  --sidebar-primary: 204 70% 53%;  /* #3498DB */
+  --sidebar-primary: 0 72% 51%;  /* #E62A2A - rouge du logo */
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 6 78% 57%;  /* #E74C3C */
-  --sidebar-accent-foreground: 0 0% 100%;
-  --sidebar-border: 209 18% 40%;
+  --sidebar-accent: 0 0% 80%;  /* #CCCCCC - gris clair */
+  --sidebar-accent-foreground: 0 0% 7%;
+  --sidebar-border: 0 0% 15%;
   --sidebar-ring: 0 0% 100%;
 }
 
 .dark {
-  --background: 240 10% 3.9%;
+  --background: 0 0% 7%;
   --foreground: 0 0% 98%;
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 64.9%;
-  --popover: 240 10% 3.9%;
+  --muted: 0 0% 15%;
+  --muted-foreground: 0 0% 65%;
+  --popover: 0 0% 7%;
   --popover-foreground: 0 0% 98%;
-  --card: 240 10% 3.9%;
+  --card: 0 0% 7%;
   --card-foreground: 0 0% 98%;
-  --border: 240 3.7% 15.9%;
-  --input: 240 3.7% 15.9%;
-  --primary: 210 29% 24%;  /* #2C3E50 */
+  --border: 0 0% 15%;
+  --input: 0 0% 15%;
+  --primary: 0 0% 0%;  /* #000000 - noir absolu */
   --primary-foreground: 0 0% 100%;
-  --secondary: 204 70% 53%;  /* #3498DB */
+  --secondary: 0 72% 51%;  /* #E62A2A - rouge du logo */
   --secondary-foreground: 0 0% 100%;
-  --accent: 6 78% 57%;  /* #E74C3C */
-  --accent-foreground: 0 0% 100%;
+  --accent: 0 0% 80%;  /* #CCCCCC - gris */
+  --accent-foreground: 0 0% 7%;
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 0% 98%;
-  --ring: 240 4.9% 83.9%;
+  --ring: 0 0% 83.9%;
+  
+  /* Mettre à jour les couleurs du charts pour le mode sombre */
+  --chart-1: 0 72% 51%;  /* Rouge */
+  --chart-2: 0 0% 80%;   /* Gris clair */
+  --chart-3: 0 0% 50%;   /* Gris moyen */
+  --chart-4: 0 0% 30%;   /* Gris foncé */
+  --chart-5: 0 0% 100%;  /* Blanc */
 }
 
 @layer base {

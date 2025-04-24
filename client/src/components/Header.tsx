@@ -2,6 +2,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Bell, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import logo from "@/assets/logo.png";
 
 interface HeaderProps {
   toggleSidebar: () => void;
@@ -21,20 +22,26 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
 
   return (
     <header className="bg-white border-b border-gray-200 p-4 flex justify-between items-center">
-      <Button 
-        variant="ghost"
-        size="icon"
-        className="md:hidden" 
-        onClick={toggleSidebar}
-      >
-        <Menu className="h-6 w-6" />
-      </Button>
+      <div className="flex items-center">
+        <Button 
+          variant="ghost"
+          size="icon"
+          className="md:hidden mr-2" 
+          onClick={toggleSidebar}
+        >
+          <Menu className="h-6 w-6" />
+        </Button>
+        
+        <div className="hidden md:block">
+          <img src={logo} alt="CARS MOTION" className="h-10" />
+        </div>
+      </div>
       
-      <div className="flex items-center space-x-4 ml-auto">
+      <div className="flex items-center space-x-4">
         <div className="relative">
           <Button variant="ghost" size="icon" className="text-gray-600 relative">
             <Bell className="h-5 w-5" />
-            <span className="absolute -top-1 -right-1 bg-accent text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">3</span>
+            <span className="absolute -top-1 -right-1 bg-secondary text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">3</span>
           </Button>
         </div>
         
