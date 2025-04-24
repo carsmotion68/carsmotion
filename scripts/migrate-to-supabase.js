@@ -1,8 +1,9 @@
 // Script pour migrer les données vers Supabase
-require('dotenv').config();
-const { createClient } = require('@supabase/supabase-js');
-const fs = require('fs');
-const path = require('path');
+import 'dotenv/config';
+import { createClient } from '@supabase/supabase-js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 // Configuration Supabase
 const supabaseUrl = process.env.SUPABASE_URL;
