@@ -88,6 +88,43 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading;
   }
+  
+  /* Couleurs personnalisées pour les badge de statut */
+  .badge-available {
+    @apply bg-[#4caf50]/20 text-[#2e7d32] px-2 py-0.5 rounded-md text-xs font-semibold;
+  }
+  
+  .badge-rented {
+    @apply bg-[#e62a2a]/20 text-[#e62a2a] px-2 py-0.5 rounded-md text-xs font-semibold;
+  }
+  
+  .badge-maintenance {
+    @apply bg-[#ff9800]/20 text-[#e65100] px-2 py-0.5 rounded-md text-xs font-semibold;
+  }
+  
+  .badge-pending {
+    @apply bg-[#2196f3]/20 text-[#0d47a1] px-2 py-0.5 rounded-md text-xs font-semibold;
+  }
+  
+  .badge-confirmed {
+    @apply bg-[#4caf50]/20 text-[#2e7d32] px-2 py-0.5 rounded-md text-xs font-semibold;
+  }
+  
+  .badge-completed {
+    @apply bg-[#9e9e9e]/20 text-[#424242] px-2 py-0.5 rounded-md text-xs font-semibold;
+  }
+  
+  .badge-cancelled {
+    @apply bg-[#e62a2a]/20 text-[#e62a2a] px-2 py-0.5 rounded-md text-xs font-semibold;
+  }
+  
+  .badge-unpaid {
+    @apply bg-[#e62a2a]/20 text-[#e62a2a] px-2 py-0.5 rounded-md text-xs font-semibold;
+  }
+  
+  .badge-paid {
+    @apply bg-[#4caf50]/20 text-[#2e7d32] px-2 py-0.5 rounded-md text-xs font-semibold;
+  }
 }
 
 /* Custom styling */
@@ -106,11 +143,13 @@
 }
 
 .calendar-day.active {
-  background-color: rgba(52, 152, 219, 0.1);
+  background-color: rgba(230, 42, 42, 0.1); /* Couleur rouge du logo */
+  border-color: rgba(230, 42, 42, 0.5);
 }
 
 .calendar-day.booked {
-  background-color: rgba(231, 76, 60, 0.1);
+  background-color: rgba(230, 42, 42, 0.15); /* Couleur rouge du logo */
+  border-color: rgba(230, 42, 42, 0.6);
 }
 
 @media (max-width: 768px) {
