@@ -25,9 +25,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Vehicle, Customer, Reservation, vehicleStorage, customerStorage, reservationStorage } from "@/lib/storage";
+import { 
+  Vehicle, 
+  Customer, 
+  Reservation, 
+  vehicleStorage, 
+  customerStorage, 
+  reservationStorage,
+  transactionStorage
+} from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
-import { cn, formatCurrency } from "@/lib/utils";
+import { cn, formatCurrency, generateUniqueId } from "@/lib/utils";
 import CustomerForm from "./CustomerForm";
 
 // Define the form schema
@@ -116,13 +124,46 @@ const ReservationForm = ({ reservation, onSuccess }: ReservationFormProps) => {
     setIsSubmitting(true);
     
     try {
+      let reservationId: string;
+      
       if (reservation) {
         // Update existing reservation
+        const previousStatus = reservation.status;
+        
         reservationStorage.update(reservation.id, {
           ...values,
           startDate: values.startDate.toISOString(),
           endDate: values.endDate.toISOString(),
         });
+        
+        reservationId = reservation.id;
+        
+        // Si le statut passe à "confirmed" et n'était pas déjà confirmé, créer une transaction financière
+        if (values.status === "confirmed" && previousStatus !== "confirmed") {
+          // Récupérer les informations du client et du véhicule
+          const customer = customerStorage.getById(values.customerId);
+          const vehicle = vehicleStorage.getById(values.vehicleId);
+          
+          // Mettre à jour le statut du véhicule
+          vehicleStorage.update(values.vehicleId, {
+            status: "rented"
+          });
+          
+          // Créer une transaction financière pour cette location
+          const customerName = customer ? `${customer.firstName} ${customer.lastName}` : "Client";
+          const vehicleInfo = vehicle ? `${vehicle.make} ${vehicle.model}` : "Véhicule";
+          
+          transactionStorage.create({
+            id: generateUniqueId(),
+            date: new Date().toISOString(),
+            type: "income",
+            category: "Locations",
+            amount: values.totalAmount,
+            description: `Location de ${vehicleInfo} à ${customerName}`,
+            relatedTo: reservationId,
+            createdAt: new Date().toISOString(),
+          });
+        }
         
         toast({
           title: "Réservation mise à jour",
@@ -130,17 +171,39 @@ const ReservationForm = ({ reservation, onSuccess }: ReservationFormProps) => {
         });
       } else {
         // Create new reservation
-        reservationStorage.create({
+        const newReservation = reservationStorage.create({
           ...values,
           startDate: values.startDate.toISOString(),
           endDate: values.endDate.toISOString(),
           createdAt: new Date().toISOString(),
         });
         
-        // Update vehicle status to rented if reservation is confirmed
+        reservationId = newReservation.id;
+        
+        // Si la réservation est confirmée à la création, créer une transaction financière
         if (values.status === "confirmed") {
+          // Récupérer les informations du client et du véhicule
+          const customer = customerStorage.getById(values.customerId);
+          const vehicle = vehicleStorage.getById(values.vehicleId);
+          
+          // Mettre à jour le statut du véhicule
           vehicleStorage.update(values.vehicleId, {
             status: "rented"
+          });
+          
+          // Créer une transaction financière pour cette location
+          const customerName = customer ? `${customer.firstName} ${customer.lastName}` : "Client";
+          const vehicleInfo = vehicle ? `${vehicle.make} ${vehicle.model}` : "Véhicule";
+          
+          transactionStorage.create({
+            id: generateUniqueId(),
+            date: new Date().toISOString(),
+            type: "income",
+            category: "Locations",
+            amount: values.totalAmount,
+            description: `Location de ${vehicleInfo} à ${customerName}`,
+            relatedTo: reservationId,
+            createdAt: new Date().toISOString(),
           });
         }
         

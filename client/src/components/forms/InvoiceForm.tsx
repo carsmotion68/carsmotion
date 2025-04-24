@@ -26,10 +26,12 @@ import {
   customerStorage, 
   reservationStorage, 
   invoiceStorage,
-  vehicleStorage
+  vehicleStorage,
+  transactionStorage,
+  Transaction
 } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
-import { cn, generateInvoiceNumber } from "@/lib/utils";
+import { cn, generateInvoiceNumber, generateUniqueId } from "@/lib/utils";
 
 // Define the form schema
 const invoiceFormSchema = z.object({
