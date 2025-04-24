@@ -29,6 +29,7 @@ const vehicleFormSchema = z.object({
   purchasePrice: z.coerce.number().min(0, "Le prix d'achat doit être positif"),
   monthlyPayment: z.coerce.number().min(0, "La mensualité doit être positive").optional(),
   contractDuration: z.coerce.number().min(0, "La durée du contrat doit être positive").optional(),
+  insuranceMonthlyFee: z.coerce.number().min(0, "Le montant d'assurance mensuel doit être positif").optional(),
   dailyRate: z.coerce.number().min(0, "Le prix journalier doit être positif"),
   status: z.enum(["available", "rented", "maintenance"]),
   notes: z.string().optional(),
@@ -57,6 +58,7 @@ const VehicleForm = ({ vehicle, onSuccess }: VehicleFormProps) => {
     purchasePrice: vehicle?.purchasePrice || 0,
     monthlyPayment: vehicle?.monthlyPayment || 0,
     contractDuration: vehicle?.contractDuration || 0,
+    insuranceMonthlyFee: vehicle?.insuranceMonthlyFee || 0,
     dailyRate: vehicle?.dailyRate || 0,
     status: vehicle?.status || "available",
     notes: vehicle?.notes || "",
@@ -81,6 +83,7 @@ const VehicleForm = ({ vehicle, onSuccess }: VehicleFormProps) => {
           purchasePrice: Number(values.purchasePrice),
           monthlyPayment: values.monthlyPayment ? Number(values.monthlyPayment) : undefined,
           contractDuration: values.contractDuration ? Number(values.contractDuration) : undefined,
+          insuranceMonthlyFee: values.insuranceMonthlyFee ? Number(values.insuranceMonthlyFee) : undefined,
           dailyRate: Number(values.dailyRate),
         });
         
@@ -96,6 +99,7 @@ const VehicleForm = ({ vehicle, onSuccess }: VehicleFormProps) => {
           purchasePrice: Number(values.purchasePrice),
           monthlyPayment: values.monthlyPayment ? Number(values.monthlyPayment) : undefined,
           contractDuration: values.contractDuration ? Number(values.contractDuration) : undefined,
+          insuranceMonthlyFee: values.insuranceMonthlyFee ? Number(values.insuranceMonthlyFee) : undefined,
           dailyRate: Number(values.dailyRate),
           createdAt: new Date().toISOString(),
         });
@@ -276,6 +280,20 @@ const VehicleForm = ({ vehicle, onSuccess }: VehicleFormProps) => {
                 <FormLabel>Durée contrat (mois)</FormLabel>
                 <FormControl>
                   <Input type="number" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="insuranceMonthlyFee"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Assurance mensuelle (€)</FormLabel>
+                <FormControl>
+                  <Input type="number" step="0.01" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

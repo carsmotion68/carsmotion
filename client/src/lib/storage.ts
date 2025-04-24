@@ -86,6 +86,7 @@ export interface Vehicle {
   purchasePrice: number;
   monthlyPayment?: number;
   contractDuration?: number;
+  insuranceMonthlyFee?: number; // Frais mensuels d'assurance
   dailyRate: number;
   status: 'available' | 'rented' | 'maintenance';
   notes?: string;
