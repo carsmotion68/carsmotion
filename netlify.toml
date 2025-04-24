@@ -1,6 +1,6 @@
 [build]
   base = "."
-  publish = "client/dist"
+  publish = "dist"
   command = "npm ci && npm run build"
   functions = "functions"
 
