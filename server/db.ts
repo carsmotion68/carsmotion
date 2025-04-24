@@ -4,21 +4,22 @@ import postgres from 'postgres';
 import * as schema from "@shared/schema";
 
 // Configuration de Supabase
-const supabaseUrl = process.env.SUPABASE_URL || 'http://localhost:54321';
-const supabaseKey = process.env.SUPABASE_SERVICE_KEY || 'dummy-key-for-development';
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 
-// Vérification en mode production uniquement
-if (process.env.NODE_ENV === 'production' && (!supabaseUrl || !supabaseKey)) {
+// Vérification des variables d'environnement Supabase
+if (!supabaseUrl || !supabaseKey) {
   throw new Error(
-    "Les variables d'environnement SUPABASE_URL et SUPABASE_SERVICE_KEY doivent être définies en production.",
+    "Les variables d'environnement SUPABASE_URL et SUPABASE_SERVICE_KEY doivent être définies.",
   );
 }
 
-// Création du client Supabase (utilisation de createClient avec des valeurs par défaut en développement)
+// Création du client Supabase
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Configuration de la connexion PostgreSQL directe pour Drizzle ORM
-const connectionString = process.env.DATABASE_URL || '';
+// On utilise l'URL de connexion fournie par Supabase dans DATABASE_URL
+const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
   throw new Error(
@@ -26,6 +27,12 @@ if (!connectionString) {
   );
 }
 
-// Client PostgreSQL pour Drizzle ORM
-const client = postgres(connectionString);
+// Configuration du client PostgreSQL pour Drizzle ORM
+const client = postgres(connectionString, {
+  max: 10, // Nombre maximum de connexions
+  idle_timeout: 20, // Temps d'inactivité avant de fermer une connexion
+  connect_timeout: 10, // Temps d'attente pour établir une connexion
+});
+
+// Initialisation de Drizzle avec notre client PostgreSQL et notre schéma
 export const db = drizzle(client, { schema });
