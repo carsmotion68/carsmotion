@@ -35,7 +35,7 @@ import {
   transactionStorage
 } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
-import { cn, formatCurrency, generateUniqueId } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import CustomerForm from "./CustomerForm";
 
 // Define the form schema
@@ -154,7 +154,6 @@ const ReservationForm = ({ reservation, onSuccess }: ReservationFormProps) => {
           const vehicleInfo = vehicle ? `${vehicle.make} ${vehicle.model}` : "Véhicule";
           
           transactionStorage.create({
-            id: generateUniqueId(),
             date: new Date().toISOString(),
             type: "income",
             category: "Locations",
@@ -196,7 +195,6 @@ const ReservationForm = ({ reservation, onSuccess }: ReservationFormProps) => {
           const vehicleInfo = vehicle ? `${vehicle.make} ${vehicle.model}` : "Véhicule";
           
           transactionStorage.create({
-            id: generateUniqueId(),
             date: new Date().toISOString(),
             type: "income",
             category: "Locations",
