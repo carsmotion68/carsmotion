@@ -41,9 +41,11 @@ console.log('Connexion à PostgreSQL avec:', connectionString.replace(/:[^:]*@/,
 
 // Créer un pool de connexions avec @neondatabase/serverless
 let pool: Pool;
-
 try {
-  pool = new Pool({ connectionString });
+  pool = new Pool({ 
+    connectionString,
+    ssl: { rejectUnauthorized: false } // Pour les connexions sécurisées
+  });
   console.log('Connexion à la base de données établie avec succès');
 } catch (error) {
   console.error('Erreur lors de la connexion à la base de données:', error);

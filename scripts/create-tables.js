@@ -21,22 +21,39 @@ if (!databaseUrl) {
 // Création du client Supabase
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Création d'une connexion PostgreSQL directe
-const pool = new Pool({ connectionString: databaseUrl });
+// Note: nous créons des pools individuels dans la fonction executeSql pour chaque requête
 
 // Fonction pour exécuter du SQL personnalisé
 async function executeSql(sql) {
   try {
-    const client = await pool.connect();
+    // Créer un pool avec les paramètres optimisés
+    const pool = new Pool({ 
+      connectionString: databaseUrl,
+      ssl: { rejectUnauthorized: false }, // Pour les connexions sécurisées
+      // Augmenter les délais pour les longues requêtes
+      statement_timeout: 10000, // 10 secondes
+      query_timeout: 10000, // 10 secondes
+      connectionTimeoutMillis: 10000, // 10 secondes
+      idle_in_transaction_session_timeout: 10000 // 10 secondes
+    });
+    
     try {
-      await client.query(sql);
-      return { error: null };
+      const client = await pool.connect();
+      try {
+        const result = await client.query(sql);
+        return { result };
+      } catch (error) {
+        return { error };
+      } finally {
+        client.release();
+      }
     } catch (error) {
       return { error };
     } finally {
-      client.release();
+      await pool.end();
     }
   } catch (error) {
+    console.error('Erreur lors de la connexion à la base de données:', error);
     return { error };
   }
 }

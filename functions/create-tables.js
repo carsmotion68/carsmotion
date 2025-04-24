@@ -54,7 +54,12 @@ exports.handler = async (event, context) => {
   async function executeSql(sql) {
     const pool = new Pool({ 
       connectionString: databaseUrl,
-      ssl: { rejectUnauthorized: false }
+      ssl: { rejectUnauthorized: false },
+      // Augmentation des délais pour les longues requêtes
+      statement_timeout: 10000, // 10 secondes
+      query_timeout: 10000, // 10 secondes
+      connectionTimeoutMillis: 10000, // 10 secondes
+      idle_in_transaction_session_timeout: 10000 // 10 secondes
     });
     
     try {
