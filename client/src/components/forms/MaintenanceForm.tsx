@@ -27,6 +27,7 @@ import {
 } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { generateMaintenanceExpense } from "@/lib/generateVehicleExpenses";
 
 // Define maintenance types
 const MAINTENANCE_TYPES = [
@@ -124,12 +125,21 @@ const MaintenanceForm = ({ record, onSuccess }: MaintenanceFormProps) => {
           description: "L'intervention de maintenance a été mise à jour avec succès.",
         });
       } else {
-        // Create new record
-        maintenanceStorage.create({
+        // Create new record avec génération de la transaction
+        const newRecord = maintenanceStorage.create({
           ...values,
           date: values.date.toISOString(),
           createdAt: new Date().toISOString(),
         });
+        
+        // Générer une transaction de dépense pour cette maintenance
+        generateMaintenanceExpense(
+          newRecord.id, 
+          values.vehicleId,
+          values.description,
+          values.cost,
+          values.date
+        );
         
         // Update vehicle mileage if the new maintenance record has a higher mileage
         if (selectedVehicle && values.mileage > selectedVehicle.mileage) {
@@ -145,7 +155,7 @@ const MaintenanceForm = ({ record, onSuccess }: MaintenanceFormProps) => {
         
         toast({
           title: "Intervention ajoutée",
-          description: "L'intervention de maintenance a été ajoutée avec succès.",
+          description: "L'intervention de maintenance a été ajoutée avec succès et la dépense a été enregistrée dans le journal.",
         });
       }
       
