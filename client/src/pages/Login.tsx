@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -53,11 +54,11 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-primary p-4">
-      <Card className="bg-white rounded-lg shadow-lg max-w-md w-full">
+    <div className="min-h-screen flex items-center justify-center bg-[#111] p-4">
+      <Card className="bg-white rounded-lg shadow-xl max-w-md w-full">
         <CardContent className="p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-heading font-bold text-primary mb-2">CARS MOTION</h1>
+            <img src={logo} alt="CARS MOTION" className="h-16 mx-auto mb-4" />
             <p className="text-gray-600">Plateforme d'administration</p>
           </div>
           
@@ -101,7 +102,7 @@ const Login = () => {
             
             <Button
               type="submit"
-              className="w-full bg-secondary hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary"
+              className="w-full bg-secondary hover:bg-secondary/90 text-white font-medium py-2 px-4 rounded-md transition duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary"
               disabled={isLoading}
             >
               {isLoading ? "Connexion en cours..." : "Se connecter"}
