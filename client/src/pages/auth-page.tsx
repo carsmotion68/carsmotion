@@ -7,7 +7,6 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -16,18 +15,10 @@ const loginSchema = z.object({
   password: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères"),
 });
 
-const registerSchema = z.object({
-  username: z.string().min(3, "Le nom d'utilisateur doit contenir au moins 3 caractères"),
-  password: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères"),
-  fullName: z.string().min(2, "Le nom complet doit contenir au moins 2 caractères"),
-});
-
 type LoginFormValues = z.infer<typeof loginSchema>;
-type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function AuthPage() {
-  const [activeTab, setActiveTab] = useState<string>("login");
-  const { user, loginMutation, registerMutation } = useAuth();
+  const { user, loginMutation } = useAuth();
   const [, navigate] = useLocation();
   
   // Redirect to dashboard if already logged in
@@ -45,21 +36,8 @@ export default function AuthPage() {
     },
   });
   
-  const registerForm = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      username: "",
-      password: "",
-      fullName: "",
-    },
-  });
-  
   const onLoginSubmit = (values: LoginFormValues) => {
     loginMutation.mutate(values);
-  };
-  
-  const onRegisterSubmit = (values: RegisterFormValues) => {
-    registerMutation.mutate(values);
   };
   
   return (
@@ -77,160 +55,67 @@ export default function AuthPage() {
             <p className="text-gray-600">Gestion de flotte automobile</p>
           </div>
           
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-8">
-              <TabsTrigger value="login">Connexion</TabsTrigger>
-              <TabsTrigger value="register">Inscription</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="login">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Connexion</CardTitle>
-                  <CardDescription>
-                    Connectez-vous pour accéder à votre espace de gestion.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Form {...loginForm}>
-                    <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
-                      <FormField
-                        control={loginForm.control}
-                        name="username"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Nom d'utilisateur</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Entrez votre nom d'utilisateur" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={loginForm.control}
-                        name="password"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Mot de passe</FormLabel>
-                            <FormControl>
-                              <Input type="password" placeholder="Entrez votre mot de passe" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <Button 
-                        type="submit" 
-                        className="w-full bg-secondary hover:bg-secondary-dark" 
-                        disabled={loginMutation.isPending}
-                      >
-                        {loginMutation.isPending ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Connexion en cours...
-                          </>
-                        ) : (
-                          "Se connecter"
-                        )}
-                      </Button>
-                    </form>
-                  </Form>
-                </CardContent>
-                <CardFooter className="flex justify-center">
-                  <p className="text-sm text-gray-500">
-                    Pas encore de compte ?{" "}
-                    <Button variant="link" className="p-0" onClick={() => setActiveTab("register")}>
-                      Créer un compte
-                    </Button>
-                  </p>
-                </CardFooter>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="register">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Inscription</CardTitle>
-                  <CardDescription>
-                    Créez un compte pour accéder à l'application CARS MOTION.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Form {...registerForm}>
-                    <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
-                      <FormField
-                        control={registerForm.control}
-                        name="fullName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Nom complet</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Entrez votre nom complet" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={registerForm.control}
-                        name="username"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Nom d'utilisateur</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Choisissez un nom d'utilisateur" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={registerForm.control}
-                        name="password"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Mot de passe</FormLabel>
-                            <FormControl>
-                              <Input type="password" placeholder="Choisissez un mot de passe" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <Button 
-                        type="submit" 
-                        className="w-full bg-secondary hover:bg-secondary-dark" 
-                        disabled={registerMutation.isPending}
-                      >
-                        {registerMutation.isPending ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Inscription en cours...
-                          </>
-                        ) : (
-                          "S'inscrire"
-                        )}
-                      </Button>
-                    </form>
-                  </Form>
-                </CardContent>
-                <CardFooter className="flex justify-center">
-                  <p className="text-sm text-gray-500">
-                    Déjà inscrit ?{" "}
-                    <Button variant="link" className="p-0" onClick={() => setActiveTab("login")}>
-                      Se connecter
-                    </Button>
-                  </p>
-                </CardFooter>
-              </Card>
-            </TabsContent>
-          </Tabs>
+          <Card>
+            <CardHeader>
+              <CardTitle>Connexion</CardTitle>
+              <CardDescription>
+                Connectez-vous pour accéder à votre espace de gestion.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...loginForm}>
+                <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
+                  <FormField
+                    control={loginForm.control}
+                    name="username"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nom d'utilisateur</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Entrez votre nom d'utilisateur" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={loginForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Mot de passe</FormLabel>
+                        <FormControl>
+                          <Input type="password" placeholder="Entrez votre mot de passe" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-secondary hover:bg-secondary-dark" 
+                    disabled={loginMutation.isPending}
+                  >
+                    {loginMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Connexion en cours...
+                      </>
+                    ) : (
+                      "Se connecter"
+                    )}
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+            <CardFooter className="flex justify-center">
+              <p className="text-sm text-gray-500">
+                Contactez l'administrateur si vous n'avez pas d'identifiants
+              </p>
+            </CardFooter>
+          </Card>
         </div>
       </div>
       
